@@ -103,16 +103,24 @@ public class VulnerableController {
     public ResponseEntity<?> pingHost(@RequestParam String host) {
         Map<String, Object> response = new HashMap<>();
         try {
-            // VULNERABLE: Direct command execution with user input
+            // VULNERABLE: Direct command execution with user input through shell
+            // This is intentionally vulnerable for educational demonstration!
             String os = System.getProperty("os.name").toLowerCase();
-            String command;
+            String[] command;
+
             if (os.contains("win")) {
-                command = "ping -n 1 " + host;  // Windows
+                // Windows: Execute through cmd.exe to enable shell operators (&&, |, etc.)
+                // This makes command injection possible!
+                command = new String[]{"cmd.exe", "/c", "ping -n 1 " + host};
             } else {
-                command = "ping -c 1 " + host;  // Linux/Mac
+                // Linux/Mac: Execute through sh to enable shell operators (;, |, &&, etc.)
+                command = new String[]{"/bin/sh", "-c", "ping -c 1 " + host};
             }
 
-            Process process = Runtime.getRuntime().exec(command);
+            ProcessBuilder pb = new ProcessBuilder(command);
+            pb.redirectErrorStream(true);  // Merge stderr into stdout
+            Process process = pb.start();
+
             BufferedReader reader = new BufferedReader(
                 new InputStreamReader(process.getInputStream())
             );
@@ -123,17 +131,9 @@ public class VulnerableController {
                 output.append(line).append("\n");
             }
 
-            // Also capture error stream
-            BufferedReader errorReader = new BufferedReader(
-                new InputStreamReader(process.getErrorStream())
-            );
-            while ((line = errorReader.readLine()) != null) {
-                output.append(line).append("\n");
-            }
-
             process.waitFor();
 
-            response.put("command", command);
+            response.put("command", String.join(" ", command));
             response.put("output", output.toString());
             response.put("exitCode", process.exitValue());
 

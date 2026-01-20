@@ -1,0 +1,217 @@
+
+================================================================================
+                    AI SECURITY ASSESSMENT REPORT
+================================================================================
+
+Target Application: http://localhost:8080
+Scan Date: 2026-01-20 22:15:37
+Total Vulnerabilities: 19
+
+SEVERITY BREAKDOWN:
+- Critical: 7
+- High: 12
+- Medium: 0
+- Low: 0
+
+================================================================================
+                         DETAILED FINDINGS
+================================================================================
+
+[1] SQL Injection - Data Leak
+    Severity: CRITICAL
+    Endpoint: /api/users/search
+    Payload: ' OR '1'='1' --
+    Description: SQL injection allows extraction of sensitive user data including passwords and credit card numbers.
+    Evidence: Extracted 5 records with payload: ' OR '1'='1' --
+    Remediation: Use parameterized queries (PreparedStatement) instead of string concatenation.
+────────────────────────────────────────────────────────────────────────────────
+
+[2] SQL Injection - Data Leak
+    Severity: CRITICAL
+    Endpoint: /api/users/search
+    Payload: admin' --
+    Description: SQL injection allows extraction of sensitive user data including passwords and credit card numbers.
+    Evidence: Extracted 1 records with payload: admin' --
+    Remediation: Use parameterized queries (PreparedStatement) instead of string concatenation.
+────────────────────────────────────────────────────────────────────────────────
+
+[3] SQL Injection - Data Leak
+    Severity: CRITICAL
+    Endpoint: /api/users/search
+    Payload: ' UNION SELECT null,username,password,email,role,credit_card,ssn FROM users --
+    Description: SQL injection allows extraction of sensitive user data including passwords and credit card numbers.
+    Evidence: Extracted 10 records with payload: ' UNION SELECT null,username,password,email,role,credit_card,ssn FROM users --
+    Remediation: Use parameterized queries (PreparedStatement) instead of string concatenation.
+────────────────────────────────────────────────────────────────────────────────
+
+[4] SQL Injection - Data Leak
+    Severity: CRITICAL
+    Endpoint: /api/users/search
+    Payload: '; DROP TABLE users; --
+    Description: SQL injection allows extraction of sensitive user data including passwords and credit card numbers.
+    Evidence: Extracted 5 records with payload: '; DROP TABLE users; --
+    Remediation: Use parameterized queries (PreparedStatement) instead of string concatenation.
+────────────────────────────────────────────────────────────────────────────────
+
+[5] Stored XSS
+    Severity: HIGH
+    Endpoint: /api/comments
+    Payload: <script>alert('XSS')</script>
+    Description: User input is stored and rendered without proper HTML encoding, allowing script injection.
+    Evidence: Payload stored: <script>alert('XSS')</script>
+    Remediation: Use HTML encoding (th:text instead of th:utext in Thymeleaf) and implement Content Security Policy.
+────────────────────────────────────────────────────────────────────────────────
+
+[6] Stored XSS
+    Severity: HIGH
+    Endpoint: /api/comments
+    Payload: <img src=x onerror=alert('XSS')>
+    Description: User input is stored and rendered without proper HTML encoding, allowing script injection.
+    Evidence: Payload stored: <img src=x onerror=alert('XSS')>
+    Remediation: Use HTML encoding (th:text instead of th:utext in Thymeleaf) and implement Content Security Policy.
+────────────────────────────────────────────────────────────────────────────────
+
+[7] Stored XSS
+    Severity: HIGH
+    Endpoint: /api/comments
+    Payload: <svg onload=alert('XSS')>
+    Description: User input is stored and rendered without proper HTML encoding, allowing script injection.
+    Evidence: Payload stored: <svg onload=alert('XSS')>
+    Remediation: Use HTML encoding (th:text instead of th:utext in Thymeleaf) and implement Content Security Policy.
+────────────────────────────────────────────────────────────────────────────────
+
+[8] Stored XSS
+    Severity: HIGH
+    Endpoint: /api/comments
+    Payload: javascript:alert('XSS')
+    Description: User input is stored and rendered without proper HTML encoding, allowing script injection.
+    Evidence: Payload stored: javascript:alert('XSS')
+    Remediation: Use HTML encoding (th:text instead of th:utext in Thymeleaf) and implement Content Security Policy.
+────────────────────────────────────────────────────────────────────────────────
+
+[9] Stored XSS
+    Severity: HIGH
+    Endpoint: /api/comments
+    Payload: <body onload=alert('XSS')>
+    Description: User input is stored and rendered without proper HTML encoding, allowing script injection.
+    Evidence: Payload stored: <body onload=alert('XSS')>
+    Remediation: Use HTML encoding (th:text instead of th:utext in Thymeleaf) and implement Content Security Policy.
+────────────────────────────────────────────────────────────────────────────────
+
+[10] Stored XSS
+    Severity: HIGH
+    Endpoint: /api/comments
+    Payload: <iframe src='javascript:alert(1)'>
+    Description: User input is stored and rendered without proper HTML encoding, allowing script injection.
+    Evidence: Payload stored: <iframe src='javascript:alert(1)'>
+    Remediation: Use HTML encoding (th:text instead of th:utext in Thymeleaf) and implement Content Security Policy.
+────────────────────────────────────────────────────────────────────────────────
+
+[11] Stored XSS
+    Severity: HIGH
+    Endpoint: /api/comments
+    Payload: <input onfocus=alert('XSS') autofocus>
+    Description: User input is stored and rendered without proper HTML encoding, allowing script injection.
+    Evidence: Payload stored: <input onfocus=alert('XSS') autofocus>
+    Remediation: Use HTML encoding (th:text instead of th:utext in Thymeleaf) and implement Content Security Policy.
+────────────────────────────────────────────────────────────────────────────────
+
+[12] Stored XSS
+    Severity: HIGH
+    Endpoint: /api/comments
+    Payload: <marquee onstart=alert('XSS')>
+    Description: User input is stored and rendered without proper HTML encoding, allowing script injection.
+    Evidence: Payload stored: <marquee onstart=alert('XSS')>
+    Remediation: Use HTML encoding (th:text instead of th:utext in Thymeleaf) and implement Content Security Policy.
+────────────────────────────────────────────────────────────────────────────────
+
+[13] Stored XSS
+    Severity: HIGH
+    Endpoint: /api/comments
+    Payload: <details open ontoggle=alert('XSS')>
+    Description: User input is stored and rendered without proper HTML encoding, allowing script injection.
+    Evidence: Payload stored: <details open ontoggle=alert('XSS')>
+    Remediation: Use HTML encoding (th:text instead of th:utext in Thymeleaf) and implement Content Security Policy.
+────────────────────────────────────────────────────────────────────────────────
+
+[14] Stored XSS
+    Severity: HIGH
+    Endpoint: /api/comments
+    Payload: '><script>alert(String.fromCharCode(88,83,83))</script>
+    Description: User input is stored and rendered without proper HTML encoding, allowing script injection.
+    Evidence: Payload stored: '><script>alert(String.fromCharCode(88,83,83))</script>
+    Remediation: Use HTML encoding (th:text instead of th:utext in Thymeleaf) and implement Content Security Policy.
+────────────────────────────────────────────────────────────────────────────────
+
+[15] Command Injection
+    Severity: CRITICAL
+    Endpoint: /api/ping
+    Payload: 127.0.0.1 && dir
+    Description: User input is passed directly to system command execution without sanitization.
+    Evidence: Command output: 
+Pinging 127.0.0.1 with 32 bytes of data:
+Reply from 127.0.0.1: bytes=32 time<1ms TTL=128
+
+Ping statistics for 127.0.0.1:
+    Packets: Sent = 1, Received = 1, Lost = 0 (0% loss),
+Approximate round tri
+    Remediation: Never pass user input directly to shell commands. Use ProcessBuilder with argument arrays instead of Runtime.exec() with string concatenation.
+────────────────────────────────────────────────────────────────────────────────
+
+[16] Command Injection
+    Severity: CRITICAL
+    Endpoint: /api/ping
+    Payload: 127.0.0.1 | dir
+    Description: User input is passed directly to system command execution without sanitization.
+    Evidence: Command output:  Volume in drive D is DATA
+ Volume Serial Number is B2CD-F60F
+
+ Directory of D:\LNI\LNI_Training\AttackDefense\vulnerable-app
+
+01/20/2026  08:52 PM    <DIR>          .
+01/20/2026  09:42 PM    <DIR>   
+    Remediation: Never pass user input directly to shell commands. Use ProcessBuilder with argument arrays instead of Runtime.exec() with string concatenation.
+────────────────────────────────────────────────────────────────────────────────
+
+[17] Command Injection
+    Severity: CRITICAL
+    Endpoint: /api/ping
+    Payload: 127.0.0.1 && net user
+    Description: User input is passed directly to system command execution without sanitization.
+    Evidence: Command output: 
+Pinging 127.0.0.1 with 32 bytes of data:
+Reply from 127.0.0.1: bytes=32 time<1ms TTL=128
+
+Ping statistics for 127.0.0.1:
+    Packets: Sent = 1, Received = 1, Lost = 0 (0% loss),
+Approximate round tri
+    Remediation: Never pass user input directly to shell commands. Use ProcessBuilder with argument arrays instead of Runtime.exec() with string concatenation.
+────────────────────────────────────────────────────────────────────────────────
+
+[18] Path Traversal
+    Severity: HIGH
+    Endpoint: /api/files
+    Payload: ../pom.xml
+    Description: File path is not validated, allowing access to arbitrary files on the system.
+    Evidence: Accessed: D:\LNI\LNI_Training\AttackDefense\vulnerable-app/uploads/../pom.xml
+    Remediation: Validate and canonicalize file paths. Use a whitelist of allowed files or directories. Never construct file paths from user input.
+────────────────────────────────────────────────────────────────────────────────
+
+[19] Path Traversal
+    Severity: HIGH
+    Endpoint: /api/files
+    Payload: ..\pom.xml
+    Description: File path is not validated, allowing access to arbitrary files on the system.
+    Evidence: Accessed: D:\LNI\LNI_Training\AttackDefense\vulnerable-app/uploads/..\pom.xml
+    Remediation: Validate and canonicalize file paths. Use a whitelist of allowed files or directories. Never construct file paths from user input.
+────────────────────────────────────────────────────────────────────────────────
+
+================================================================================
+                    AI ANALYSIS & RECOMMENDATIONS
+================================================================================
+
+
+
+================================================================================
+                           END OF REPORT
+================================================================================
