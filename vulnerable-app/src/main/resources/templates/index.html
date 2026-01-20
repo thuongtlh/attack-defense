@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vulnerable Demo App</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            min-height: 100vh;
+            color: #fff;
+        }
+        .warning-banner {
+            background: linear-gradient(90deg, #ff4444, #cc0000);
+            padding: 15px;
+            text-align: center;
+            font-weight: bold;
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.8; }
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+        h1 {
+            font-size: 3em;
+            text-align: center;
+            margin-bottom: 10px;
+            background: linear-gradient(90deg, #00ff88, #00ccff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .subtitle {
+            text-align: center;
+            color: #888;
+            margin-bottom: 50px;
+        }
+        .vulnerabilities {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 25px;
+            margin-top: 30px;
+        }
+        .vuln-card {
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 15px;
+            padding: 25px;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        .vuln-card:hover {
+            transform: translateY(-5px);
+            border-color: #00ff88;
+            box-shadow: 0 10px 40px rgba(0,255,136,0.2);
+        }
+        .vuln-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background: linear-gradient(90deg, #ff4444, #ff8800);
+        }
+        .vuln-card h3 {
+            color: #ff6b6b;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .vuln-card p {
+            color: #aaa;
+            line-height: 1.6;
+            margin-bottom: 15px;
+        }
+        .vuln-card .endpoint {
+            background: rgba(0,0,0,0.3);
+            padding: 10px 15px;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+            color: #00ccff;
+            margin-bottom: 15px;
+        }
+        .vuln-card a {
+            display: inline-block;
+            background: linear-gradient(90deg, #00ff88, #00ccff);
+            color: #000;
+            padding: 10px 25px;
+            border-radius: 25px;
+            text-decoration: none;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+        .vuln-card a:hover {
+            transform: scale(1.05);
+            box-shadow: 0 5px 20px rgba(0,255,136,0.4);
+        }
+        .severity {
+            display: inline-block;
+            padding: 3px 10px;
+            border-radius: 15px;
+            font-size: 0.75em;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+        .severity.critical { background: #ff4444; }
+        .severity.high { background: #ff8800; }
+        .api-info {
+            margin-top: 50px;
+            background: rgba(0,0,0,0.3);
+            padding: 30px;
+            border-radius: 15px;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        .api-info h2 {
+            color: #00ccff;
+            margin-bottom: 20px;
+        }
+        .api-info pre {
+            background: #0d1117;
+            padding: 20px;
+            border-radius: 10px;
+            overflow-x: auto;
+            color: #58a6ff;
+        }
+    </style>
+</head>
+<body>
+    <div class="warning-banner">
+        ⚠️ WARNING: This application is INTENTIONALLY VULNERABLE - FOR EDUCATIONAL PURPOSES ONLY ⚠️
+    </div>
+
+    <div class="container">
+        <h1>🔓 Vulnerable Demo App</h1>
+        <p class="subtitle">A deliberately vulnerable application for security training</p>
+
+        <div class="vulnerabilities">
+            <!-- SQL Injection -->
+            <div class="vuln-card">
+                <h3>
+                    💉 SQL Injection
+                    <span class="severity critical">Critical</span>
+                </h3>
+                <p>User search functionality vulnerable to SQL injection attacks. Attackers can extract sensitive data from the database.</p>
+                <div class="endpoint">GET /api/users/search?username=xxx</div>
+                <a href="/users">Test Vulnerability →</a>
+            </div>
+
+            <!-- XSS -->
+            <div class="vuln-card">
+                <h3>
+                    📜 Cross-Site Scripting (XSS)
+                    <span class="severity high">High</span>
+                </h3>
+                <p>Comment system does not sanitize user input, allowing malicious script injection.</p>
+                <div class="endpoint">POST /api/comments?comment=xxx&author=xxx</div>
+                <a href="/comments">Test Vulnerability →</a>
+            </div>
+
+            <!-- Command Injection -->
+            <div class="vuln-card">
+                <h3>
+                    💻 Command Injection
+                    <span class="severity critical">Critical</span>
+                </h3>
+                <p>Network utility passes user input directly to system commands, allowing arbitrary command execution.</p>
+                <div class="endpoint">GET /api/ping?host=xxx</div>
+                <a href="/network">Test Vulnerability →</a>
+            </div>
+
+            <!-- Path Traversal -->
+            <div class="vuln-card">
+                <h3>
+                    📁 Path Traversal
+                    <span class="severity high">High</span>
+                </h3>
+                <p>File reading endpoint does not validate paths, allowing access to sensitive system files.</p>
+                <div class="endpoint">GET /api/files?filename=xxx</div>
+                <a href="/files">Test Vulnerability →</a>
+            </div>
+        </div>
+
+        <div class="api-info">
+            <h2>📡 API Endpoints</h2>
+            <pre>
+GET  /api/info                          - Get API information
+GET  /api/users/search?username=xxx     - Search users (SQL Injection)
+POST /api/comments?comment=xxx&author=xxx - Add comment (XSS)
+GET  /api/ping?host=xxx                 - Ping host (Command Injection)
+GET  /api/files?filename=xxx            - Read file (Path Traversal)
+POST /api/deserialize                   - Deserialize object (Insecure Deserialization)
+            </pre>
+        </div>
+    </div>
+</body>
+</html>

